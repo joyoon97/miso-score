@@ -100,14 +100,8 @@ ol.tips li{display:flex;gap:14px;align-items:center;padding:14px 0;border-bottom
   @page{size:A4;margin:12mm}
   body{background:#fff}
   main,.shot{display:none !important}
-  #printarea{display:block;color:#000;font-size:11pt}
-  #printarea img{display:block;width:118mm;margin:0 auto 6mm;border:1px solid #ccc}
-  #printarea h2{font-size:13pt;margin:0 0 3mm;padding-left:3mm;border-left:2mm solid #F5B400}
-  #printarea .next{background:none;border-left:0;padding:0;margin:0 0 2mm;font-weight:700}
-  #printarea ol.tips li{padding:1.6mm 0;border-bottom:1px dashed #bbb;break-inside:avoid}
-  #printarea .plus{font-size:11pt;min-width:22mm}
-  #printarea .why{color:#444;font-size:9pt}
-  #printarea .go,#printarea .pick{display:none}
+  #printarea{display:block}
+  #printarea img{display:block;margin:0 auto;max-width:170mm;max-height:268mm;width:auto;height:auto}
 }
 .shot{position:fixed;inset:0;z-index:50;background:rgba(10,20,28,.82);display:none;align-items:center;justify-content:center;padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px))}
 .shot.on{display:flex}
@@ -157,12 +151,12 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--top);outline-of
 
   <p class="note">매분기 선정기준에 의거 자동으로 등급조정·자격부여 및 상실처리 되며, 선정된 참조합원에 대해서 조합 이사장이 필요하다고 인정하는 경우 자격을 상실시킬 수 있습니다. 잔액 항목은 최근 3개월 평균으로 산정되므로, 분기 중간에 늘린 금액은 평균에 일부만 반영됩니다. 이 계산 결과는 참고용이며 실제 등급은 조합 산정 결과를 따릅니다.</p>
 </main>
-<div id="printarea"><img id="printimg" alt="나의 참조합원 점수 결과"><h2>점수를 올리려면</h2><div class="next" id="printnext"></div><ol class="tips" id="printtips"></ol></div>
+<div id="printarea"><img id="printimg" alt="나의 참조합원 점수 결과"></div>
 <div class="shot" id="shot" role="dialog" aria-modal="true" aria-label="내 결과 이미지">
   <div class="shot-in">
     <img id="shotimg" alt="나의 참조합원 점수 결과">
-    <p>저장이 안 되면 이미지를 길게 눌러 저장하세요.</p>
-    <div class="shot-btns"><button type="button" id="shotclose">닫기</button><button type="button" class="pri" id="shotsave">저장 · 공유</button></div>
+    <p id="shothint">저장이 안 되면 이미지를 길게 눌러 저장하세요.</p>
+    <div class="shot-btns"><button type="button" id="shotclose">닫기</button><button type="button" class="pri" id="shotsave">저장</button><button type="button" class="pri" id="shotshare">문자 · 공유</button></div>
   </div>
 </div>
 
@@ -282,7 +276,7 @@ function render() {
   }
 
   last.cand = cand;
-  last.msg = next ? next.name + "까지 " + (next.min - total) + "점 남았어요" : "최고 등급 " + CONFIG.tiers[0].name + "입니다";
+  last.msg = next ? next.name + "까지 " + fmt(r1(next.min - total)) + "점 남았어요" : "최고 등급 " + CONFIG.tiers[0].name + "입니다";
   $("tips").innerHTML = cand.map(c => {
     const gap = fmt(c.gap) + c.it.unit;
     return '<li><div class="plus">' + (picks.has(c.it.id) ? '<span class="pick">추천</span>' : '') + '+' + c.gain + '점</div><div>' +
@@ -372,23 +366,30 @@ $("print").addEventListener("click", async () => {
   const c = await makeShot(), im = $("printimg");
   im.src = c.toDataURL("image/png");
   try { await im.decode(); } catch (e) {}
-  $("printnext").innerHTML = $("next").innerHTML;
-  $("printtips").innerHTML = $("tips").innerHTML;
   window.print();
 });
 $("shotclose").addEventListener("click", () => $("shot").classList.remove("on"));
 $("shot").addEventListener("click", e => { if (e.target === $("shot")) $("shot").classList.remove("on"); });
-$("shotsave").addEventListener("click", async () => {
+const SHOT_NAME = "미소신협_참조합원점수.png";
+$("shotsave").addEventListener("click", () => {
   if (!shotBlob) return;
-  const name = "미소신협_참조합원점수.png";
   try {
-    const file = new File([shotBlob], name, { type: "image/png" });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: "나의 참조합원 점수" }); return; }
-  } catch (e) { if (e && e.name === "AbortError") return; }
-  try {
-    const a = document.createElement("a"); a.href = URL.createObjectURL(shotBlob); a.download = name;
+    const a = document.createElement("a"); a.href = URL.createObjectURL(shotBlob); a.download = SHOT_NAME;
     document.body.appendChild(a); a.click(); a.remove();
   } catch (e) {}
+});
+$("shotshare").addEventListener("click", async () => {
+  if (!shotBlob) return;
+  const text = "[미소신협] 나의 참조합원 점수 " + fmt(last.total) + "점 (" + (last.cur ? last.cur.name : "등급 없음") + ") · " + last.msg;
+  try {
+    const file = new File([shotBlob], SHOT_NAME, { type: "image/png" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], text }); return; }
+  } catch (e) { if (e && e.name === "AbortError") return; }
+  if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+    // 이미지 공유가 안 되는 환경: 문자 앱에 결과 문구를 채워서 엽니다
+    try { window.open("sms:" + (IOS ? "&" : "?") + "body=" + encodeURIComponent(text), "_top"); return; } catch (e) {}
+  }
+  $("shothint").textContent = "이 기기에서는 바로 공유할 수 없습니다. 이미지를 저장한 뒤 문자나 메신저로 보내주세요.";
 });
 </script>
 </body>
