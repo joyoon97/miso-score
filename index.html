@@ -2,6 +2,7 @@
 <html lang="ko" data-theme="light">
 <head>
 <meta charset="utf-8">
+<meta name="color-scheme" content="only light">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>나의 참조합원 점수 계산해보기</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -10,6 +11,7 @@
 :root{
   --navy:#3A5A72; --paper:#ffffff; --ink:#1a1a1a; --mute:#5d6b75; --line:#d5dde2; --field:#f3f6f9; --accent:#F5B400; --sky1:#dceef7; --sky2:#c3e2f0; --page:#eef3f6;
   --top:#2BA9E0; --mid:#F0847C; --low:#F2B705; --ok:#0d7a52;
+  color-scheme:only light;
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
@@ -28,8 +30,9 @@ body{margin:0;background:var(--page);color:var(--ink);font-family:"Noto Sans KR"
 .wm{position:absolute;left:-30px;top:50%;transform:translateY(-50%);height:150%;opacity:.16;pointer-events:none}
 .guide{position:absolute;right:6px;bottom:-14px;height:92%;max-height:210px;pointer-events:none}
 @media (max-width:520px){.sign{padding:34px 104px 30px 18px}.guide{max-height:150px;height:auto;width:112px;right:0}}
-.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.85rem;color:var(--mute);font-weight:500;flex:1;min-width:0}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.85rem;color:var(--mute);font-weight:500;flex:1 1 9.5em;min-width:9.5em}
 .legend span{white-space:nowrap}
+@media (max-width:700px){.legend{flex:0 0 100%;min-width:0;order:3;display:grid;grid-template-columns:repeat(3,auto);justify-content:space-between;gap:0 8px;font-size:clamp(.72rem,3.3vw,.85rem);margin-top:4px}}
 .legend i{display:inline-block;width:10px;height:10px;margin-right:5px}
 .tierbox{display:flex;align-items:center;gap:8px;flex:0 0 auto}
 .tier{white-space:nowrap}
