@@ -145,7 +145,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--top);outline-of
   <div class="next" id="next"></div>
   <ol class="tips" id="tips"></ol>
 
-  <div class="acts"><button class="save" id="save" type="button">내 결과 이미지로 저장하기</button><button class="save print" id="print" type="button">인쇄하기</button></div>
+  <div class="acts"><button class="save" id="save" type="button">저장하기</button><button class="save print" id="print" type="button">인쇄하기</button></div>
 
   <p class="visit">나의 정확한 점수와 등급이 궁금하신가요?<br>가까운 미소신협 지점에 방문하시면 직원이 자세히 안내해 드립니다.</p>
 
@@ -387,7 +387,7 @@ $("shotshare").addEventListener("click", async () => {
   const text = "[미소신협] 나의 참조합원 점수 " + fmt(last.total) + "점 (" + (last.cur ? last.cur.name : "등급 없음") + ") · " + last.msg;
   try {
     const file = new File([shotBlob], SHOT_NAME, { type: "image/png" });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file] }); return; }
+    if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], text }); return; }
   } catch (e) { if (e && e.name === "AbortError") return; }
   if (window.self !== window.top) {
     // 홈페이지 안에 끼워진 상태에서는 브라우저가 이미지 공유를 막으므로, 입력값을 담아 새 창으로 엽니다
@@ -397,7 +397,9 @@ $("shotshare").addEventListener("click", async () => {
     return;
   }
   if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-    // 이미지 공유가 안 되는 환경: 문자 앱에 결과 문구를 채워서 엽니다
+    // 이미지 공유가 안 되는 환경: 이미지를 저장하고, 문자 앱에 결과 문구를 채워서 엽니다
+    $("shotsave").click();
+    $("shothint").textContent = "이미지를 저장했습니다. 문자 화면에서 방금 저장한 사진을 첨부해 주세요.";
     try { window.open("sms:" + (IOS ? "&" : "?") + "body=" + encodeURIComponent(text), "_top"); return; } catch (e) {}
   }
   $("shothint").textContent = "이 기기에서는 바로 공유할 수 없습니다. 이미지를 저장한 뒤 문자나 메신저로 보내주세요.";
