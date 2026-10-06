@@ -120,6 +120,16 @@ ol.tips li{display:flex;gap:14px;align-items:center;padding:14px 0;border-bottom
 .note{font-size:.82rem;color:var(--mute);margin-top:28px;border-top:1px solid var(--line);padding-top:14px}
 button.reset{font:inherit;background:none;border:2px solid var(--ink);color:var(--ink);padding:6px 14px;border-radius:8px;cursor:pointer;margin-top:18px}
 button:focus-visible,input:focus-visible{outline:3px solid var(--top);outline-offset:2px}
+/* 휴대폰: 등급 표시를 캐릭터 아래로 내려 점수와 겹치지 않게 */
+@media (max-width:700px){
+  .board-row{flex-wrap:nowrap;align-items:center}
+  .board-row .total{flex:1 1 auto;min-width:0;font-size:clamp(1.7rem,8.5vw,2.4rem)}
+  .tierbox{flex:0 0 auto;flex-direction:column-reverse;align-items:center;gap:3px}
+  .tierbox img{height:56px}
+  .tierbox .tier{font-size:.82rem;padding:3px 10px}
+  .board-row{flex-wrap:wrap}
+  .legend{flex:0 0 100%;order:3}
+}
 </style>
 </head>
 <body>
