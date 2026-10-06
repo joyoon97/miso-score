@@ -284,6 +284,10 @@ function render() {
       '<p class="why">' + c.it.name + ' 현재 ' + c.earned + '점 · ' + (c.it.basis || "3개월 평균") + ' 기준을 채우면 ' + c.it.points + '점</p>' + (c.it.desc ? '<p class="why">해당 상품: ' + c.it.desc + '</p>' : '') + linkBtn(c.it) + '</div></li>';
   }).join("");
 }
+(function () {
+  const m = location.hash.match(/^#v=([\d,]+)$/); if (!m) return;
+  m[1].split(",").forEach((n, i) => { const it = CONFIG.items[i]; if (!it) return; const v = Number(n) || 0; vals[it.id] = v; $("in-" + it.id).value = v ? fmt(v) : ""; });
+})();
 render();
 
 /* ===== 결과 이미지 만들기 ===== */
@@ -383,8 +387,15 @@ $("shotshare").addEventListener("click", async () => {
   const text = "[미소신협] 나의 참조합원 점수 " + fmt(last.total) + "점 (" + (last.cur ? last.cur.name : "등급 없음") + ") · " + last.msg;
   try {
     const file = new File([shotBlob], SHOT_NAME, { type: "image/png" });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], text }); return; }
+    if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file] }); return; }
   } catch (e) { if (e && e.name === "AbortError") return; }
+  if (window.self !== window.top) {
+    // 홈페이지 안에 끼워진 상태에서는 브라우저가 이미지 공유를 막으므로, 입력값을 담아 새 창으로 엽니다
+    const url = location.origin + location.pathname + "#v=" + CONFIG.items.map(i => vals[i.id] || 0).join(",");
+    $("shothint").innerHTML = '이 화면에서는 이미지 공유가 제한됩니다. <a href="' + url + '" target="_blank" rel="noopener"><b>새 창에서 열기</b></a>를 누른 뒤 다시 공유해 주세요.';
+    try { window.open(url, "_blank"); } catch (e) {}
+    return;
+  }
   if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
     // 이미지 공유가 안 되는 환경: 문자 앱에 결과 문구를 채워서 엽니다
     try { window.open("sms:" + (IOS ? "&" : "?") + "body=" + encodeURIComponent(text), "_top"); return; } catch (e) {}
